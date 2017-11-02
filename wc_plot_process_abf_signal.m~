@@ -1,0 +1,51 @@
+function wc_plot_process_abf_signal(time, signal, sigdetrend, sigfiltered, interval)
+%
+% axon_abf_fra FRA from abf file using TMF FRA params
+%
+% Asks for an abf file, then estimates trigger values, gets multi-unit
+% responses, and plots the FRA and PSTH.
+%
+
+
+
+if ( nargin == 4 )
+    tmin = -inf;
+    tmax = inf;
+else
+    if length(interval) == 0
+        tmin = -inf;
+        tmax = inf;
+    if length(interval) == 1
+        tmin = -inf;
+        tmax = interval;
+    else
+        tmin = min(interval);
+        tmax = max(interval);
+    end
+end
+
+
+index = find(time>tmin & time<tmax);
+
+figure;
+subplot(3,1,1);
+plot(time(index), signal(index));
+
+
+subplot(3,1,2);
+plot(time(index), sigdetrend(index));
+
+
+subplot(3,1,3);
+plot(time(index), sigfiltered(index));
+
+
+set(gcf,'position', [451 314 2001 985]);
+
+return;
+
+
+
+
+
+

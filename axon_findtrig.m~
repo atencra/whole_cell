@@ -1,0 +1,125 @@
+function [trigger, trigger_signal] = axon_findtrig(trigger_signal, Thresh)
+
+%findtrig  Find triggers from a .raw or .mich int16 file
+%
+%  [trigger, outfile] = findtrig(trigpath, Thresh, M)
+%
+%  trigpath : filename 
+%
+%  Thresh : Threshhold : [-1 , 1]. Default: Thresh==.75
+%
+%  M : Block Size. Default: M==1024*256. Unless you really care, I don't
+%     recommend supplying this input argument. The default works nicely.
+%
+%  trigger : Returned Trigger Time Vector (in sample number)
+%
+%  outfile : output file name. The trigger file name without the .raw or
+%            .mich ending. This makes it easy to save the trigger data
+%            without having to copy and paste a file name.
+%
+% Craig Atencio
+% 6-8-2012
+
+
+narginchk(2,2);
+
+
+
+MeanX = mean(trigger_signal(:));
+MaxX = max(trigger_signal(:));
+
+% Finding Triggers
+trigger = [];
+count = 0;
+
+trigger_signal = trigger_signal(:)';
+
+X = (trigger_signal - MeanX ) / MaxX;
+trigger_signal = X;
+
+if ( Thresh > 0 ) % set negative part of biphasic pulse to zero
+    X(X<0) = 0;
+else % set positive part of biphasic pulse to zero
+    X(X>0) = 0;
+    X = -X;
+end
+
+
+% Set the triggers to a maximum/minimum value to eliminate the Gibbs
+% phenomenon effect
+X( X > 0.6 ) = 1;
+X( X <= 0.6 ) = 0;
+
+
+
+%Adding First Element to avoid missing trigger 
+%if trigger falls exactly on edge
+if ( count == 0 )
+   X0 = X(1);
+   X = [X0 X];
+elseif ( length(X)>0 )
+   X = [X0 X];	
+end
+
+
+%Finding Triggers
+if ( length(X) > 0 )
+   %Setting Anything < Tresh to zero
+   index = find( X < abs(Thresh) );
+   X(index) = zeros(1,length(index));
+
+
+   %Finding Edges in X
+   D = diff(X);
+   indexD = find( D >= abs(Thresh) );	%Finding Trigger Locations
+
+
+   %Converting to Trigger Times
+   trigger = [trigger indexD];
+
+   %Finding the Last Element of X. This is placed as the first 
+   % element in the new X Array
+   X0 = X(length(X));
+
+   %Incrementing Counter
+   count = count + 1;
+
+end
+
+
+
+
+%Re-calculating inter-trigger spacing
+Dtrigger = diff(trigger);
+maxD = max(Dtrigger);
+
+%Finding triple trigger(s)
+triple_ind = find(Dtrigger(1:end-1) < 0.25*maxD & Dtrigger(2:end) < 0.25*maxD );
+triptrig = trigger(triple_ind);
+
+%Removing additional triggers if extra triple triggers are found
+if(isempty(triple_ind))
+
+    disp('Could not find initial triple trigger.');
+
+else %Triple triggers found
+
+   % Multiple triple triggers found. We will assume that the first and 
+   % last triple trigger were for the same stimulus. This is the case
+   % for the static ripple/moving ripple stimuli, but not for other stimuli
+   if( length(triple_ind) == 2 ) 
+   %         trigger = trigger( triple_ind(1):(triple_ind(2)-1) );
+     trigger = trigger( triple_ind(1):triple_ind(2) );
+
+   %There was only one triple trigger
+   else
+     trigger = trigger(triple_ind(1):end);
+   end
+
+   %Making triple trigger count as one trigger
+   trigger = [trigger(1) trigger(4:end)];
+
+end
+
+
+return;
