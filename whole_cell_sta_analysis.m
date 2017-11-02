@@ -11,9 +11,12 @@ function whole_cell_sta_analysis
 % To explore the thresholding and peakfinding:
 
 library('whole_cell');
+file = '17914009.abf';
 datapath = 'c:\users\craig\desktop\20171028_to_Craig_to_test_Weight\17914009_rn1_-80mV\'
 abfile = fullfile(datapath, file);
+
 [time, sig, sigd, sigf] = wc_process_abf_signal('abfile', abfile);
+
 ca; wc_plot_process_abf_signal(time,sig,sigd,sigf,[3 6]);
 
 
@@ -26,7 +29,6 @@ ca; wc_plot_process_abf_signal(time,sig,sigd,sigf,[3 6]);
 % To plot STAs at different thresholds
 
 wc_plot_sta_threshold(signal, trigger, fs)
-
 
 % What's left: 
 1. make stimulus-observation matrix

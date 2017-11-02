@@ -1,15 +1,20 @@
-function [taxis, faxis,locator, locatorval, sta, averate, numspikes, pp, spln] = ...
-wc_locator_sta_from_spr_matrix(specfile, spet, spetval, trigger, fsad, spl, varargin)
+function [locator, locatorval, pp, spln, rmsp] = ...
+wc_locator_from_spet_spr(specfile, spet, spetval, trigger, fsad, spl, varargin)
 %
 % Spike train and strfs for ripple stimulation
 %
-% [taxis,faxis,locator1, locator2, sta1,sta2,averate1,averate2,numspikes1,numspikes2,pp,spln] = ...
+% [locator, locatorval, pp, spln, rmsp] = ...
 %       locator_sta_from_spr_matrix(specfile, spet, trigger, fsad, spl, varargin)
 %
 % Required inputs 
 %
 %	specfile : Spectral Profile File
 %	spet : Array of spike event times in sample number
+%   spetval : Array of event time in magnitude. Spetval is identical to 
+%       spet, but has a continuous magnitude value instead of a sample
+%       number. The value in spetval(i) corresponds to the event at
+%       spet(i).
+%
 %	trigger : Array of Trigger Times
 %	fsad : Sampling Rate for A/D system (for spet and trigger)
 %	spl : Signal RMS Sound Pressure Level
@@ -28,13 +33,11 @@ wc_locator_sta_from_spr_matrix(specfile, spet, spetval, trigger, fsad, spl, vara
 %
 % Outputs:
 %
-%	taxis: Time Axis
-%	faxis: Frequency Axis (Hz)
-%	sta: Spectro-Temporal Receptive Field
-%	averate: Zeroth-Order Kernels ( Average Number of Spikes / Sec )
-%	numspikes: Number of Spikes
+%   locator : binned spike train. Values are 0, 1, 2, etc
+%   locatorval : binned continuous response values
 %	pp: Power Level
 %	spln: Sound Pressure Level per Frequency Band
+%   rmsp : root mean square of ripple profile
 %	
 
 narginchk(6,18);
@@ -97,41 +100,6 @@ for trigcount = 2:length(trigger)-1
     end
 
 end
-
-
-
-[n, nt, nf] = ripple_stim_length(specfile);
-
-index_min = min( [length(locator) n/nf] );
-locator = locator1( 1:index_min );
-
-
-
-
-% Converting Temporal Delays to Sample Numbers
-n1 = round( options.t1 * Fs / DF);
-n2 = round( options.t2 * Fs / DF);
-
-
-sta = zeros(size(stimulus,1), n1+n2+1);
-numspikes = 0;
-for i = (n2+1):(length(locator1)-n1)
-   if ( locator(i) )
-      sta = sta + locator(i) * stimulus(:, (i-n2):(i+n1));
-      numspikes = numspikes + locator(i);
-   end
-end
-
-
-
-
-
-stim_duration = ( max(trigger) - min(trigger) ) / fsad;
-
-averate = numspikes / stim_duration;
-
-% get time and frequency axes for the receptive field
-taxis = (-n2:n1) / (Fs/DF);
 
 
 if strcmp(modType,'dB')

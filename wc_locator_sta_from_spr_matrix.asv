@@ -37,7 +37,7 @@ wc_locator_sta_from_spr_matrix(specfile, spet, spetval, trigger, fsad, spl, vara
 %	spln: Sound Pressure Level per Frequency Band
 %	
 
-narginchk(6,18);
+narginchk(5,12);
 
 options = struct('t1', 0.1, 't2', 0.2, 'mdb', 40, 'modtype', 'dB', 'sound', 'MR', 'sprtype', 'float');
 options = input_options(options, varargin);
@@ -134,10 +134,11 @@ averate = numspikes / stim_duration;
 taxis = (-n2:n1) / (Fs/DF);
 
 
+
 if strcmp(modType,'dB')
 
     %Finding Mean Spectral Profile and RMS Power
-    spln = spl - 10*log10(NF); % Normalized SPL per frequency band
+    spln = SPL - 10*log10(NF); % Normalized SPL per frequency band
 
     if strcmp(Sound,'RN')
         rmsp = -MdB/2; % RMS value of normalized Spectral Profile

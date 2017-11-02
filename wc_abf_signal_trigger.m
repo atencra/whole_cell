@@ -1,4 +1,4 @@
-function [signal, trigger, fsnew] = wc_abf_signal_trigger(varargin)
+function [signal, trigger, fsnew] = wc_abf_signal_trigger(abfile)
 % [signal, trigger, fs] = wc_abf_signal_trigger(abfile)
 %
 %
@@ -18,33 +18,16 @@ function [signal, trigger, fsnew] = wc_abf_signal_trigger(varargin)
 %
 
 
-
-options = struct('abfile', []);
-
-
-options = input_options(options, varargin);
-
-
-if ( isempty(options.interval) )
-    tmin = -inf;
-    tmax = inf;
-else
-    if length(options.interval) == 1
-        tmin = -inf;
-        tmax = options.interval;
-    else
-        tmin = min(options.interval);
-        tmax = max(options.interval);
-    end
+if nargin == 0
+    abfile = [];
 end
 
 
-
-if ( isempty(options.abfile) )
+if ( isempty(abfile) )
     [filename, pathname, filterindex] = uigetfile('*.abf', 'Pick an abf file');
     abspath = fullfile(pathname, filename);
 else
-    abspath = options.abfile;
+    abspath = abfile;
 end
 
 [d, si, h] = abfload(abspath);

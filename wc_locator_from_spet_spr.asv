@@ -1,9 +1,9 @@
-function [taxis, faxis,locator, locatorval, sta, averate, numspikes, pp, spln] = ...
-wc_locator_sta_from_spr_matrix(specfile, spet, spetval, trigger, fsad, spl, varargin)
+function [taxis, faxis,locator, locatorval, averate, numspikes, pp, spln, rmsp] = ...
+wc_locator_from_spet_spr(specfile, spet, spetval, trigger, fsad, spl, varargin)
 %
 % Spike train and strfs for ripple stimulation
 %
-% [taxis,faxis,locator1, locator2, sta1,sta2,averate1,averate2,numspikes1,numspikes2,pp,spln] = ...
+% [taxis, faxis, locator, locatorval, averate, numspikes, pp, spln, rmsp] = ...
 %       locator_sta_from_spr_matrix(specfile, spet, trigger, fsad, spl, varargin)
 %
 % Required inputs 
@@ -30,11 +30,13 @@ wc_locator_sta_from_spr_matrix(specfile, spet, spetval, trigger, fsad, spl, vara
 %
 %	taxis: Time Axis
 %	faxis: Frequency Axis (Hz)
-%	sta: Spectro-Temporal Receptive Field
+%   locator : binned spike train. Values are 0, 1, 2, etc
+%   locatorval : binned continuous response values
 %	averate: Zeroth-Order Kernels ( Average Number of Spikes / Sec )
 %	numspikes: Number of Spikes
 %	pp: Power Level
 %	spln: Sound Pressure Level per Frequency Band
+%   rmsp : root mean square of rippl
 %	
 
 narginchk(6,18);
