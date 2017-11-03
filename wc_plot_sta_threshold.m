@@ -1,8 +1,8 @@
-function wc_plot_sta_threshold(signal, trigger, fs, extrema, stimfile)
+function wc_plot_sta_threshold(signal, trigger, fs, extrema, specfile)
 %
 % wc_plot_sta_threshold STAs for different current threshold crossing
 %
-% wc_plot_sta_threshold(signal, trigger, fs, stimfile)
+% wc_plot_sta_threshold(signal, trigger, fs, specfile)
 %
 % The STA from voltage clamp recordings is estimated for different
 % threshold values.
@@ -21,22 +21,25 @@ function wc_plot_sta_threshold(signal, trigger, fs, extrema, stimfile)
 %           0 for negative "peaks"
 %           Default = 0
 %
-% stimfile : absolute path to the 
+% specfile : absolute path to the the spr file
 %
 % signal, trigger, and fs may be obtained from 
 %       [signal, trigger, fs] = wc_abf_signal_trigger(abfile);
 %
 %
 
+
 library('whole_cell');
 library('strfbox');
 library('stimbox');
 
-narginchk(3,4);
+narginchk(3,5);
 
 if nargin == 3
     extrema = -1;
 end
+
+
 
 if extrema == -1
     signal = -1 * signal;
@@ -52,7 +55,6 @@ zsig = zscore(signal);
 denom = 8;
 selectivity = (max(zsig)-min(zsig)) ./ denom;
 spl = 60;
-nf = 
 
 paramfile = strrep(stimfile, '.spr', '_param.mat');
 params = load(paramfile, 'NT', 'NF');
@@ -68,7 +70,7 @@ for ii = 1:length(threshold)
     
     for i = 1:length(selectivity)
 
-        [minLoc, minMag] = peakfinder(zsig, selectivity(i), thresh, extrema);
+        [spet, spetval] = peakfinder(zsig, selectivity(i), thresh, extrema);
         
         [locator, locatorval, pp, spln, rmsp] = ...
             wc_locator_from_spet_spr(specfile, spet, spetval, trigger, fs, spl);
@@ -76,7 +78,8 @@ for ii = 1:length(threshold)
 
 
         
-        minLoc(1:10)
+        size(locator)
+        size(locatorval)
         pause
 
         subplot(length(selectivity),1,i);
@@ -100,7 +103,6 @@ end % (for ii)
 
 
 % Denom of 8 looks to work well.
-
 
 % Now loop through and find events for thresholds = [-1 -2 -3 -4 -5] for
 % denom = 8
