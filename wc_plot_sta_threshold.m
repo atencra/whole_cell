@@ -1,4 +1,4 @@
-function wc_plot_sta_threshold(signal, trigger, fs, extrema, specfile)
+function wc_plot_sta_threshold(signal, trigger, fs, extrema, sprfile)
 %
 % wc_plot_sta_threshold STAs for different current threshold crossing
 %
@@ -27,6 +27,15 @@ function wc_plot_sta_threshold(signal, trigger, fs, extrema, specfile)
 %       [signal, trigger, fs] = wc_abf_signal_trigger(abfile);
 %
 %
+
+
+if isempty(sprfile)
+
+    stimfolder = 'c:\stimuli';
+    file = 'rn1-500flo-40000fhi-4SM-40TM-40db-96khz-48DF-10min_DFt5_DFf5.spr';
+    sprfile = fullfile(stimfolder, sprfile);
+end
+
 
 
 library('whole_cell');

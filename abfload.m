@@ -265,6 +265,8 @@ for g=1:numOfParams
   end
   sz=length(s(g).value);
   % use dynamic field names
+  s(g)
+  pause
   [h.(s(g).name),n]=fread(fid,sz,s(g).numType);
   if n~=sz,
     fclose(fid);
