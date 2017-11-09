@@ -1,4 +1,4 @@
-function wc_plot_sta_threshold(signal, trigger, fs, extrema, sprfile)
+function wc_plot_sta_threshold(signal, trigger, fs, sprfile)
 %
 % wc_plot_sta_threshold STAs for different current threshold crossing
 %
@@ -11,15 +11,12 @@ function wc_plot_sta_threshold(signal, trigger, fs, extrema, sprfile)
 % where the response is 0 or 1, and by a response magnitude model, where
 % the response is the magnitude of the peak value.
 %
-% signal : processed whole cell recording signal.
+% signal : processed whole cell recording signal. Peaks are assumed to be positive.
 %
 % trigger : trigger times for ripple stimulus, in sample number.
 %
 % fs : sampling rate of signal and trigger.
 %
-% extrema : 1 for positive peaks
-%           0 for negative "peaks"
-%           Default = 0
 %
 % specfile : absolute path to the the spr file
 %
@@ -30,7 +27,6 @@ function wc_plot_sta_threshold(signal, trigger, fs, extrema, sprfile)
 
 
 if isempty(sprfile)
-
     stimfolder = 'c:\stimuli';
     file = 'rn1-500flo-40000fhi-4SM-40TM-40db-96khz-48DF-10min_DFt5_DFf5.spr';
     sprfile = fullfile(stimfolder, sprfile);
@@ -44,16 +40,7 @@ library('stimbox');
 
 narginchk(3,5);
 
-if nargin == 3
-    extrema = -1;
-end
-
-
-
-if extrema == -1
-    signal = -1 * signal;
-    extrema = 1;
-end
+extrema = 1;
 
 
 
@@ -116,9 +103,8 @@ end % (for ii)
 % Now loop through and find events for thresholds = [-1 -2 -3 -4 -5] for
 % denom = 8
 
-
-dt = time(2) - time(1)
-fs = 1 / dt
+%dt = time(2) - time(1)
+%fs = 1 / dt
 
 return;
 

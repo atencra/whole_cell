@@ -1,4 +1,4 @@
-function wc_plot_process_abf_signal(time, signal, sigdetrend, sigfiltered, interval)
+function wc_plot_process_abf_signal(time, sigraw, sigdetrend, sigfilt, interval)
 %
 % axon_abf_fra FRA from abf file using TMF FRA params
 %
@@ -29,7 +29,7 @@ index = find(time>tmin & time<tmax);
 
 figure;
 subplot(3,4,[1 3]);
-plot(time(index), signal(index));
+plot(time(index), sigraw(index));
 title('Raw signal');
 yax1 = get(gca,'ylim');
 
@@ -40,13 +40,13 @@ yax2 = get(gca,'ylim');
 
 
 subplot(3,4,[9 11]);
-plot(time(index), sigfiltered(index));
+plot(time(index), sigfilt(index));
 title('Filtered signal');
 yax3 = get(gca,'ylim');
 
 
 subplot(3,4,4);
-hist(signal,50);
+hist(sigraw,50);
 title('Raw Amp Dist');
 xlim(yax1);
 
@@ -56,7 +56,7 @@ title('De-trended signal Amp Dist');
 xlim(yax2);
 
 subplot(3,4,12);
-hist(sigfiltered,50);
+hist(sigfilt,50);
 title('Filtered signal Amp Dist');
 xlim([yax3]);
 
@@ -64,16 +64,14 @@ set(gcf,'position', [150 314 2001 985]);
 
 
 
-
-
 % Different threshold levels
 
-threshold = [-1 -2 -3 -4];
-
-zsigfiltered = zscore(sigfiltered);
+threshold = 1:4;
+zsigfilt = zscore(sigfilt);
 denom = 8;
-sel = (max(zsigfiltered)-min(zsigfiltered)) ./ denom;
-extrema = -1;
+sel = (max(zsigfilt)-min(zsigfilt)) ./ denom;
+extrema = 1;
+
 
 figure;
 
@@ -82,14 +80,14 @@ for i = 1:length(threshold)
     thresh = threshold(i);
     
 
-    [minLoc, minMag] = peakfinder(zsigfiltered, sel, thresh, extrema);
+    [minLoc, minMag] = peakfinder(zsigfilt, sel, thresh, extrema);
 
     
     subplot(length(threshold),4, (i-1)*4+1);
     hold on;
     
     edges = linspace(-10,10,51);
-    [count, bin] = histc(zsigfiltered, edges);
+    [count, bin] = histc(zsigfilt, edges);
     prob = count ./ sum(count);
     bar(edges, prob, 'histc');
     
@@ -101,7 +99,7 @@ for i = 1:length(threshold)
     
     subplot(length(threshold),4,[(i-1)*4+2 (i-1)*4+4]);
     hold on;
-    plot(time(index), zsigfiltered(index));
+    plot(time(index), zsigfilt(index));
     plot([min(time(index)) max(time(index))], [thresh thresh], 'r-');
     plot(time(minLoc), minMag, 'rv');
     xlim([min(time(index)) max(time(index))]);
@@ -118,9 +116,8 @@ set(gcf,'position', [500 150 2001 985]);
 
 % Different selectivity values
 
-threshold = [-1 -2 -3 -4];
 denom = 4:4:12;
-sel = (max(zsigfiltered)-min(zsigfiltered)) ./ denom;
+sel = (max(zsigfilt)-min(zsigfilt)) ./ denom;
 
 for ii = 1:length(threshold)
 
@@ -130,12 +127,11 @@ for ii = 1:length(threshold)
     
     for i = 1:length(sel)
 
-        extrema = -1;
-        [minLoc, minMag] = peakfinder(zsigfiltered, sel(i), thresh, extrema);
+        [minLoc, minMag] = peakfinder(zsigfilt, sel(i), thresh, extrema);
         
         subplot(length(sel),1,i);
         hold on;
-        plot(time(index), zsigfiltered(index));
+        plot(time(index), zsigfilt(index));
         plot([min(time(index)) max(time(index))], [thresh thresh], 'r-');
         plot(time(minLoc), minMag, 'rv');
         xlim([min(time(index)) max(time(index))]);
@@ -160,8 +156,8 @@ end % (for ii)
 % denom = 8
 
 
-dt = time(2) - time(1)
-fs = 1 / dt
+%dt = time(2) - time(1)
+%fs = 1 / dt
 
 return;
 

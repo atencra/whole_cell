@@ -7,38 +7,48 @@ function whole_cell_sta_analysis
 %
 
 pkg load signal;
+libmonty;
+
+stimfolder = 'c:\stimuli';
+sprfile = 'rn1-500flo-40000fhi-4SM-40TM-40db-96khz-48DF-10min_DFt5_DFf5.spr';
+sprfile = fullfile(stimfolder, sprfile);
+
+
+matfile = 'C:/Users/craig/Desktop/20171028_to_Craig_to_test_Weight/17914009_rn1_-80mV/17914009_raw.mat'
+
+extrema = -1;
 
 
 % To explore the thresholding and peakfinding:
-
-library('whole_cell');
-file = '17914009.abf';
-datapath = 'c:\users\craig\desktop\20171028_to_Craig_to_test_Weight\17914009_rn1_-80mV\'
-abfile = fullfile(datapath, file);
-
-file = '17914009_raw.mat';
-
-matfile = fullfile(datapath, file);
+%
+%[time, sig, sigdetrend, sigfilt, trigger] = wc_process_raw_signal(matfile, extrema, interval)
+%
+%wc_plot_process_abf_signal(time, sig, sigdetrend, sigfilt, interval);
 
 
 
 
-[time, sig, sigd, sigf] = wc_process_abf_signal('abfile', abfile);
-
-ca; wc_plot_process_abf_signal(time,sig,sigd,sigf,[3 6]);
+%[time, sig, sigd, sigf] = wc_process_abf_signal('abfile', abfile);
+%
+%ca; wc_plot_process_abf_signal(time,sig,sigd,sigf,[3 6]);
 
 
 
 % To get the signal and trigger for STA processing
+%
+%[signal, trigger, fs] = wc_abf_signal_trigger(abfile);
 
-[signal, trigger, fs] = wc_abf_signal_trigger(abfile);
+[signal, trigger, fs, sigraw, sigdetrend] = wc_raw_signal_trigger(matfile, extrema);
 
-return
+time = (0:length(signal)-1) / fs;
+wc_plot_process_abf_signal(time, sigraw, sigdetrend, signal, [0 10]);
+
+return;
 
 
 % To plot STAs at different thresholds
 
-wc_plot_sta_threshold(signal, trigger, fs)
+wc_plot_sta_threshold(signal, trigger, fs, sprfile);
 
 % What's left: 
 % 1. make stimulus-observation matrix

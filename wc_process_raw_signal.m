@@ -1,26 +1,37 @@
-function [time, response_signal, response_detrend, response_filtered] = wc_process_raw_signal(matfile, interval)
+function [time, sig, sigdetrend, sigfilt, trigger] = wc_process_raw_signal(matfile, extrema, interval)
 % wc_process_raw_signal Load and process raw abf recording stored in .mat file
 %
-% [time, response_signal, response_detrend, response_filtered] = ...
-%       wc_process_raw_signal(matfile, interval) 
+% [time, sig, sigdetrend, sigfilt, trigger] = wc_process_raw_signal(matfile, extrema, interval) 
 %
-% loads the response_signal and trigger_signal variables stored in filename, 
+% loads the response_signal and trigger_signal variables stored in matfile, 
 % and processes them to remove noise, etc.
+%
+% extrema : 1 if peaks are positive (inhibitory currents or current clamp)
+%          -1 if peaks are negative (excitatory currents). 
+%           Default = -1.
 %
 % The resulting signal is plotted over the time boundaries listed in interval.
 % interval is a 1x2 vector = [lowval hival], where lowval and hival are in seconds.
 %
 
+pkg load signal
+libmonty;
 
-%%%%%%%%%%%% need smooth function from matlab
 %%%%%%%%%%%% need to adjust signal for extrema
 
-narginchk(1,2);
+narginchk(1,3);
 
 if nargin == 1
     interval = [];
+    extrema = -1;
 end
-         
+
+if nargin == 2
+    interval = [];
+    if isempty(extrema)
+        extrema = -1;
+    end
+end     
 
 if ( isempty(interval) )
     tmin = -inf;
@@ -37,7 +48,7 @@ end
 
 
 load(matfile, 'response_signal', 'trigger_signal', 'fs');
-
+response_signal = extrema * response_signal;
 
 fsnew = 1000;
 
@@ -45,20 +56,20 @@ trigger = axon_findtrig(trigger_signal, -0.5);
 
 
 % Resample signals from 10000 Hz to 1000 Hz
-response_signal = resample(response_signal, fsnew, fs);
+sig = resample(response_signal, fsnew, fs);
 trigger = ceil( trigger * fsnew / fs );
 
 
-time = (0:length(response_signal)-1) / fsnew;
+time = (0:length(sig)-1) / fsnew;
 
 % Get rid of fluctuating baseline
-response_smooth = smooth(response_signal, 10000);
-response_detrend = response_signal - response_smooth;
+sigsmooth = smoothsig(sig, 10000);
+sigdetrend = sig - sigsmooth;
 
-response_sd = std(response_detrend);
-response_mean = std(response_detrend);
-index = find(response_detrend > 3 * response_sd);
-response_detrend(index) = response_mean;
+signal_sd = std(sigdetrend);
+signal_mean = mean(sigdetrend);
+index = find(sigdetrend < (signal_mean - 3 * signal_sd));
+sigdetrend(index) = signal_mean;
 
 
 f1 = 3;
@@ -67,16 +78,9 @@ tw = 5;
 att = 30;
 hlp = bandpass(f1, f2, tw, fsnew, att, 'n');
 
-response_filtered = filtfilt(hlp, 1, response_detrend);
+sigfilt = filtfilt(hlp, 1, sigdetrend);
 
-
-%response_3p = smooth3p(response_detrend);
-
-
-wc_plot_process_abf_signal(time, response_signal, ...
-                                 response_detrend, ...
-                                 response_filtered, ...
-                                 options.interval);
+wc_plot_process_abf_signal(time, sig, sigdetrend, sigfilt, interval);
 
 return;
 
