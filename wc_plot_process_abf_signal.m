@@ -48,7 +48,6 @@ yax3 = get(gca,'ylim');
 subplot(3,4,4);
 hist(sigraw,50);
 title('Raw Amp Dist');
-xlim(yax1);
 
 subplot(3,4,8);
 hist(sigdetrend,50);
@@ -60,7 +59,7 @@ hist(sigfilt,50);
 title('Filtered signal Amp Dist');
 xlim([yax3]);
 
-set(gcf,'position', [150 314 2001 985]);
+set(gcf,'position', 0.75*[150 314 2001 985]);
 
 
 
@@ -110,7 +109,7 @@ end % (for i)
 
 suptitle(sprintf('Filtered signal; Denom = %.1f', denom));
 
-set(gcf,'position', [500 150 2001 985]);
+set(gcf,'position', 0.75*[500 150 2001 985]);
 
 
 
@@ -142,7 +141,7 @@ for ii = 1:length(threshold)
 
     suptitle(sprintf('Filtered signal; Threhsold = %.1f', thresh));
 
-    set(gcf,'position', [500 150 1400 985]);
+    set(gcf,'position', 0.75*[500 150 1400 985]);
     
 end % (for ii)
 

@@ -48,7 +48,7 @@ end
 
 % If stimfile is a string, load the file. If a matrix, reassign to new
 % variable
-if ( isstr(stimfile) ) % Load stimulus matrix from file
+if ( ischar(stimfile) ) % Load stimulus matrix from file
    stimulus = load(stimfile);
    stimulus = stimulus.stimulus;
 else

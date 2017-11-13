@@ -42,9 +42,13 @@ wc_locator_from_spet_spr(specfile, spet, spetval, trigger, fsad, spl, varargin)
 
 narginchk(6,18);
 
-options = struct('t1', 0.1, 't2', 0.2, 'mdb', 40, 'modtype', 'dB', 'sound', 'MR', 'sprtype', 'float');
+options = struct('mdb', 40, 'modtype', 'dB', 'sound', 'MR', 'sprtype', 'float');
 options = input_options(options, varargin);
 
+mdb = options.mdb;
+modtype = options.modtype;
+sound = options.sound;
+sprtype = options.sprtype;
 
 
 % Loading Parameter Data
@@ -91,7 +95,7 @@ for trigcount = 2:length(trigger)-1
     % Finding SPET between triggers. Resampling spet relative to the %    Spectral Profile samples
     index = find( spet>=trigger(trigcount) & spet<trigger(trigcount+1) );
     spet_segment = spet(index);
-    values_segment = spetval(index_spet_segment);
+    values_segment = spetval(index);
 
     for k = 1:length(spet_segment)
         index_ripple = ceil( (spet_segment(k)-trigger(trigcount)+1) * Fs / fsad / DF );      
@@ -102,27 +106,24 @@ for trigcount = 2:length(trigger)-1
 end
 
 
-if strcmp(modType,'dB')
+%Finding Mean Spectral Profile and RMS Power
+spln = spl - 10*log10(NF); % Normalized SPL per frequency band
 
-    %Finding Mean Spectral Profile and RMS Power
-    spln = spl - 10*log10(NF); % Normalized SPL per frequency band
-
-    if strcmp(Sound,'RN')
-        rmsp = -MdB/2; % RMS value of normalized Spectral Profile
-        pp = MdB^2/12; % Modulation Depth Variance 
-    elseif strcmp(Sound,'MR')
-        rmsp = -MdB/2; % RMS value of normalized Spectral Profile
-        pp = MdB^2/8; % Modulation Depth Variance 
-    end
-    
-    % How to scale the 'dB' STRFs
-    %STRF1=STRF1+ MdB*[S1(:,M-(N2-L-1):M) S2(:,1:L+N1)] - RMSP;
-    %o1=No1+1;
-    %TRF1=Wo1/PP*fliplr(STRF1)/No1;
-    %TRF2=Wo2/PP*STRF2/No2;
-    %axis=(-N1:N2-1)/(Fs/DF);
-
+if strcmp(sound,'RN')
+    rmsp = -mdb/2; % RMS value of normalized Spectral Profile
+    pp = mdb^2/12; % Modulation Depth Variance 
+elseif strcmp(sound,'MR')
+    rmsp = -mdb/2; % RMS value of normalized Spectral Profile
+    pp = mdb^2/8; % Modulation Depth Variance 
 end
+
+% How to scale the 'dB' STRFs
+%STRF1=STRF1+ MdB*[S1(:,M-(N2-L-1):M) S2(:,1:L+N1)] - RMSP;
+%o1=No1+1;
+%TRF1=Wo1/PP*fliplr(STRF1)/No1;
+%TRF2=Wo2/PP*STRF2/No2;
+%axis=(-N1:N2-1)/(Fs/DF);
+
 
 
 

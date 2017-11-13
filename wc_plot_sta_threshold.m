@@ -32,11 +32,16 @@ if isempty(sprfile)
     sprfile = fullfile(stimfolder, sprfile);
 end
 
+stimfile = strrep(sprfile, '.spr', '-matrix.mat');
+
+load(stimfile, 'stimulus');
+
 
 
 library('whole_cell');
 library('strfbox');
 library('stimbox');
+library('midbox');
 
 narginchk(3,5);
 
@@ -52,59 +57,163 @@ denom = 8;
 selectivity = (max(zsig)-min(zsig)) ./ denom;
 spl = 60;
 
-paramfile = strrep(stimfile, '.spr', '_param.mat');
-params = load(paramfile, 'NT', 'NF');
-nlags = ceil(0.2/params.NT);
-[stim] = wc_stim_mat2obs(stimfile, nlags)
+paramfile = strrep(sprfile, '.spr', '_param.mat');
+params = load(paramfile, 'NT', 'NF', 'taxis');
+dt = diff(params.taxis(1:2));
+nlags = ceil(0.2/dt);
 
 
-for ii = 1:length(threshold)
+figure;
 
-    thresh = threshold(ii);
+for i = 1:length(threshold)
 
-    figure;
+    thresh = threshold(i);
+  
+    [spet, spetval] = peakfinder(zsig, selectivity, thresh, extrema);
     
-    for i = 1:length(selectivity)
-
-        [spet, spetval] = peakfinder(zsig, selectivity(i), thresh, extrema);
+    [locator, locatorval, pp, spln, rmsp] = ...
+        wc_locator_from_spet_spr(sprfile, spet, spetval, trigger, fs, spl);
         
-        [locator, locatorval, pp, spln, rmsp] = ...
-            wc_locator_from_spet_spr(specfile, spet, spetval, trigger, fs, spl);
-        
-
-
-        
-        size(locator)
-        size(locatorval)
-        pause
-
-        subplot(length(selectivity),1,i);
-        hold on;
-        plot(time(index), zsigfiltered(index));
-        plot([min(time(index)) max(time(index))], [thresh thresh], 'r-');
-        plot(time(minLoc), minMag, 'rv');
-        xlim([min(time(index)) max(time(index))]);
-
-        title(sprintf('Denom = %.1f', denom(i)));
-
-    end % (for i)
-
-    suptitle(sprintf('Filtered signal; Threhsold = %.1f', thresh));
-
-    set(gcf,'position', [500 150 1400 985]);
+    sta = wc_locator_stimulus_to_sta(locator, stimulus, nlags);
+    sta_val = wc_locator_stimulus_to_sta(locatorval, stimulus, nlags);
     
-end % (for ii)
+    nspks = sum(locator);
+
+    subplot(length(threshold), 3, (i-1)*3+1);
+    imagesc(sta);
+    
+    minmin = min(min(sta));
+    maxmax = max(max(sta));
+    boundary = max([abs(minmin) abs(maxmax)]);
+
+    cmap = brewmaps('rdbu', 21);
+    cmap = cmap([1:9 11 13:end],:); % get more contrast in STRF
+    colormap(cmap);
+    
+    set(gca,'ydir', 'normal');
+    set(gca, 'tickdir', 'out', 'ticklength', [0.025 0.025]);
+    set(gca, 'clim', [-1.05*boundary-eps 1.05*boundary+eps]);
+    
+    title(sprintf('Threshold = %.1f, N = %.0f\nEvents', thresh, nspks));
+       
+    subplot(length(threshold), 3, (i-1)*3+2);
+    imagesc(sta_val);
+    
+    minmin = min(min(sta_val));
+    maxmax = max(max(sta_val));
+    boundary = max([abs(minmin) abs(maxmax)]);
+
+    cmap = brewmaps('rdbu', 21);
+    cmap = cmap([1:9 11 13:end],:); % get more contrast in STRF
+    colormap(cmap);
+    
+    set(gca,'ydir', 'normal');
+    set(gca, 'tickdir', 'out', 'ticklength', [0.025 0.025]);
+    set(gca, 'clim', [-1.05*boundary-eps 1.05*boundary+eps]);
+    
+    title('Value');
+    
+    
+%    edges = linspace(-10,10,51);
+%    [count, bin] = histc(zsigfilt, edges);
+%    prob = count ./ sum(count);
+%    bar(edges, prob, 'histc');
+    
+    subplot(length(threshold), 3, i*3);
+    hist(locatorval(locatorval>0), 50)
+    xlim([0 20]);
+
+end % (for i)
 
 
 
 
-% Denom of 8 looks to work well.
 
-% Now loop through and find events for thresholds = [-1 -2 -3 -4 -5] for
-% denom = 8
 
-%dt = time(2) - time(1)
-%fs = 1 / dt
+
+
+
+
+
+figure;
+
+thresh = 1;
+[spet, spetval] = peakfinder(zsig, selectivity, thresh, extrema);
+
+[locator, locatorval, pp, spln, rmsp] = ...
+    wc_locator_from_spet_spr(sprfile, spet, spetval, trigger, fs, spl);
+    
+percent = 0:20:100;
+prc = prctile(locatorval(locatorval>0), percent);
+
+for i = 1:(length(prc)-1)
+
+
+    lowval = prc(i);
+    highval = prc(i+1);
+
+    index = find(locatorval >= lowval & locatorval < highval);
+    
+    locator_range = zeros(size(locator));
+    locatorval_range = zeros(size(locatorval));
+    
+    locator_range(index) = locator(index);
+    locatorval_range(index) = locatorval(index);
+    
+    sta = wc_locator_stimulus_to_sta(locator_range, stimulus, nlags);
+    sta_val = wc_locator_stimulus_to_sta(locatorval_range, stimulus, nlags);
+    
+    nspks = sum(locator_range);
+
+    subplot(length(prc)-1, 3, (i-1)*3+1);
+    imagesc(sta);
+    
+    minmin = min(min(sta));
+    maxmax = max(max(sta));
+    boundary = max([abs(minmin) abs(maxmax)]);
+
+    cmap = brewmaps('rdbu', 21);
+    cmap = cmap([1:9 11 13:end],:); % get more contrast in STRF
+    colormap(cmap);
+    
+    set(gca,'ydir', 'normal');
+    set(gca, 'tickdir', 'out', 'ticklength', [0.025 0.025]);
+    set(gca, 'clim', [-1.05*boundary-eps 1.05*boundary+eps]);
+    
+    title(sprintf('[%.0f, %.0f] percent = [%.1f, %.1f], N = %.0f\nEvents', ...
+        percent(i), percent(i+1), lowval, highval, nspks));
+       
+    
+    subplot(length(prc)-1, 3, (i-1)*3+2);
+    imagesc(sta_val);
+    
+    minmin = min(min(sta_val));
+    maxmax = max(max(sta_val));
+    boundary = max([abs(minmin) abs(maxmax)]);
+
+    cmap = brewmaps('rdbu', 21);
+    cmap = cmap([1:9 11 13:end],:); % get more contrast in STRF
+    colormap(cmap);
+    
+    set(gca,'ydir', 'normal');
+    set(gca, 'tickdir', 'out', 'ticklength', [0.025 0.025]);
+    set(gca, 'clim', [-1.05*boundary-eps 1.05*boundary+eps]);
+    
+    title(sprintf('N = %.0f\nValue', nspks));
+    
+    
+%    edges = linspace(-10,10,51);
+%    [count, bin] = histc(zsigfilt, edges);
+%    prob = count ./ sum(count);
+%    bar(edges, prob, 'histc');
+    
+    subplot(length(prc)-1, 3, i*3);
+    hist(locatorval_range(locatorval_range>0), 50)
+    xlim([0 20]);
+
+end % (for i)
+
+
 
 return;
 
