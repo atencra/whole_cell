@@ -1,8 +1,8 @@
-function wc_plot_sta_threshold(signal, trigger, fs, sprfile)
+function wc_plot_sta_threshold(signal, trigger, fs, sprfile, thresh)
 %
 % wc_plot_sta_threshold STAs for different current threshold crossing
 %
-% wc_plot_sta_threshold(signal, trigger, fs, specfile)
+% wc_plot_sta_threshold(signal, trigger, fs, sprfile, thresh)
 %
 % The STA from voltage clamp recordings is estimated for different
 % threshold values.
@@ -18,12 +18,16 @@ function wc_plot_sta_threshold(signal, trigger, fs, sprfile)
 % fs : sampling rate of signal and trigger.
 %
 %
-% specfile : absolute path to the the spr file
+% sprfile : absolute path to the the spr file
+%
+% thresh : value to use for finding events. Can be visually determined by looking
+%   at wc_plot_process_abf_signal.m
 %
 % signal, trigger, and fs may be obtained from 
 %       [signal, trigger, fs] = wc_abf_signal_trigger(abfile);
 %
 %
+
 
 
 if isempty(sprfile)
@@ -36,6 +40,9 @@ stimfile = strrep(sprfile, '.spr', '-matrix.mat');
 
 load(stimfile, 'stimulus');
 
+if ( isempty(thresh) )
+    thresh = 1;
+end
 
 
 library('whole_cell');
@@ -51,7 +58,8 @@ extrema = 1;
 
 % Different threshold levels
 
-threshold = 1:4;
+threshold = thresh + (0:3);
+
 zsig = zscore(signal);
 denom = 8;
 selectivity = (max(zsig)-min(zsig)) ./ denom;
@@ -67,9 +75,9 @@ figure;
 
 for i = 1:length(threshold)
 
-    thresh = threshold(i);
+    thr = threshold(i);
   
-    [spet, spetval] = peakfinder(zsig, selectivity, thresh, extrema);
+    [spet, spetval] = peakfinder(zsig, selectivity, thr, extrema);
     
     [locator, locatorval, pp, spln, rmsp] = ...
         wc_locator_from_spet_spr(sprfile, spet, spetval, trigger, fs, spl);
@@ -94,7 +102,7 @@ for i = 1:length(threshold)
     set(gca, 'tickdir', 'out', 'ticklength', [0.025 0.025]);
     set(gca, 'clim', [-1.05*boundary-eps 1.05*boundary+eps]);
     
-    title(sprintf('Threshold = %.1f, N = %.0f\nEvents', thresh, nspks));
+    title(sprintf('Threshold = %.1f, N = %.0f\nEvents', thr, nspks));
        
     subplot(length(threshold), 3, (i-1)*3+2);
     imagesc(sta_val);
@@ -122,6 +130,7 @@ for i = 1:length(threshold)
     subplot(length(threshold), 3, i*3);
     hist(locatorval(locatorval>0), 50)
     xlim([0 20]);
+    title('Event Values');
 
 end % (for i)
 
@@ -137,7 +146,6 @@ end % (for i)
 
 figure;
 
-thresh = 1;
 [spet, spetval] = peakfinder(zsig, selectivity, thresh, extrema);
 
 [locator, locatorval, pp, spln, rmsp] = ...
@@ -210,6 +218,7 @@ for i = 1:(length(prc)-1)
     subplot(length(prc)-1, 3, i*3);
     hist(locatorval_range(locatorval_range>0), 50)
     xlim([0 20]);
+    title('Event Values');
 
 end % (for i)
 

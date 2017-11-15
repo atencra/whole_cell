@@ -62,6 +62,8 @@ xlim([yax3]);
 set(gcf,'position', 0.75*[150 314 2001 985]);
 
 
+close all;
+
 
 % Different threshold levels
 
@@ -77,9 +79,9 @@ figure;
 for i = 1:length(threshold)
 
     thresh = threshold(i);
-    
 
-    [minLoc, minMag] = peakfinder(zsigfilt, sel, thresh, extrema);
+    %[minLoc, minMag] = peakfinder(zsigfilt, sel, thresh, extrema);
+    [spet, spetval] = peakfinder(zsigfilt, sel, thresh, extrema);
 
     
     subplot(length(threshold),4, (i-1)*4+1);
@@ -90,7 +92,7 @@ for i = 1:length(threshold)
     prob = count ./ sum(count);
     bar(edges, prob, 'histc');
     
-    title(sprintf('Threshold = %.1f', thresh));
+    title(sprintf('Threshold = %.1f, N = %.0f', thresh, length(spet)));
     xlim([-10 10]);
     yax = [0 1.1*max(prob)];
     plot([threshold(i) threshold(i)], yax, 'r-');
@@ -100,7 +102,7 @@ for i = 1:length(threshold)
     hold on;
     plot(time(index), zsigfilt(index));
     plot([min(time(index)) max(time(index))], [thresh thresh], 'r-');
-    plot(time(minLoc), minMag, 'rv');
+    plot(time(spet), spetval, 'rv');
     xlim([min(time(index)) max(time(index))]);
 
     title(sprintf('Threhsold = %.1f', thresh));
@@ -111,6 +113,8 @@ suptitle(sprintf('Filtered signal; Denom = %.1f', denom));
 
 set(gcf,'position', 0.75*[500 150 2001 985]);
 
+
+return;
 
 
 % Different selectivity values
