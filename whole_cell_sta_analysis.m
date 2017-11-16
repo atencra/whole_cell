@@ -47,8 +47,8 @@ wc_plot_process_abf_signal(time, sigraw, sigdetrend, signal, [0 10]);
 
 
 % To plot STAs at different thresholds
-
-wc_plot_sta_threshold(signal, trigger, fs, sprfile);
+thresh = 1;
+wc_plot_sta_threshold(signal, trigger, fs, sprfile, thresh);
 
 % Finished
 
@@ -67,7 +67,8 @@ extrema = 1;
 time = (0:length(signal)-1) / fs;
 wc_plot_process_abf_signal(time, sigraw, sigdetrend, signal, [0 30]);
 
-wc_plot_sta_threshold(signal, trigger, fs, sprfile);
+thresh = 0.5;
+wc_plot_sta_threshold(signal, trigger, fs, sprfile, thresh);
 
 
 

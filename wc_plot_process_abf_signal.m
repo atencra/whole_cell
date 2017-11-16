@@ -62,8 +62,6 @@ xlim([yax3]);
 set(gcf,'position', 0.75*[150 314 2001 985]);
 
 
-close all;
-
 
 % Different threshold levels
 
@@ -113,8 +111,6 @@ suptitle(sprintf('Filtered signal; Denom = %.1f', denom));
 
 set(gcf,'position', 0.75*[500 150 2001 985]);
 
-
-return;
 
 
 % Different selectivity values
