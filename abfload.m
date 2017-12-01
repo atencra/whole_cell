@@ -273,6 +273,10 @@ for g=1:numOfParams
     error(['something went wrong reading value(s) for ' s(g).name]);
   end
 end
+
+disp('after for g=1:numOfParams');
+
+
 % file signature needs to be transposed
 h.fFileSignature=h.fFileSignature';
 % several header parameters need a fix or version-specific refinement:
