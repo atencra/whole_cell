@@ -1,4 +1,4 @@
-function [signal, trigger, fs, sig, sigdetrend] = wc_raw_signal_trigger(matfile, extrema)
+function [signal, trigger, fs, sigraw, sigdetrend] = wc_raw_signal_trigger(matfile, extrema)
 % wc_raw_signal_trigger Load and process raw abf recording stored in .mat file
 %
 % [signal, trigger, fs, sigraw, sigdetrend] = wc_raw_signal_trigger(matfile) 
@@ -50,15 +50,15 @@ trigger = axon_findtrig(trigger_signal, -0.5);
 
 
 % Resample signals from 10000 Hz to 1000 Hz
-sig = resample(response_signal, fsnew, fs);
+sigraw = resample(response_signal, fsnew, fs);
 trigger = ceil( trigger * fsnew / fs );
 
 
 time = (0:length(sig)-1) / fsnew;
 
 % Get rid of fluctuating baseline
-sigsmooth = smoothsig(sig, 10000);
-sigdetrend = sig - sigsmooth;
+sigsmooth = smoothsig(sigraw, 10000);
+sigdetrend = sigraw - sigsmooth;
 
 sig_sd = std(sigdetrend);
 sig_mean = mean(sigdetrend);
@@ -77,14 +77,6 @@ sigfilt = filtfilt(hlp, 1, sigdetrend);
 signal = sigfilt;
 fs = fsnew;
 
-if nargout == 1
-    varargout{1} = sig;
-end
-
-if nargout == 2
-    varargout{1} = sig;
-    varargout{2} = sigdetrend;
-end
 
 
 return;
